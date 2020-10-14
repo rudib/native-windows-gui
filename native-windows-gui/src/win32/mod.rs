@@ -50,6 +50,27 @@ pub fn dispatch_thread_events() {
     }
 }
 
+/**
+    Dispatch system events in the current thread with a pretranslation callback just before it.
+    This method will pause the thread until there are events to process.
+*/
+pub fn dispatch_thread_events_with_pretranslate<F>(mut pretranslate_filter: F)
+    where F: FnMut(&winapi::um::winuser::MSG) -> bool + 'static
+{
+    use winapi::um::winuser::MSG;
+    use winapi::um::winuser::GetMessageW;
+
+    unsafe {
+        let mut msg: MSG = mem::zeroed();
+        while GetMessageW(&mut msg, ptr::null_mut(), 0, 0) != 0 {
+            if pretranslate_filter(&mut msg) && IsDialogMessageW(GetAncestor(msg.hwnd, GA_ROOT), &mut msg) == 0 {
+                TranslateMessage(&msg); 
+                DispatchMessageW(&msg); 
+            }
+        }
+    }
+}
+
 
 /**
     Dispatch system evetns in the current thread AND execute a callback after each peeking attempt.
