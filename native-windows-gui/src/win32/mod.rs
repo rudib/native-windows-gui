@@ -55,7 +55,7 @@ pub fn dispatch_thread_events() {
     This method will pause the thread until there are events to process.
 */
 pub fn dispatch_thread_events_with_pretranslate<F>(mut pretranslate_filter: F)
-    where F: FnMut(&winapi::um::winuser::MSG) -> bool + 'static
+    where F: FnMut(&winapi::um::winuser::MSG) -> bool
 {
     use winapi::um::winuser::MSG;
     use winapi::um::winuser::GetMessageW;
@@ -63,7 +63,7 @@ pub fn dispatch_thread_events_with_pretranslate<F>(mut pretranslate_filter: F)
     unsafe {
         let mut msg: MSG = mem::zeroed();
         while GetMessageW(&mut msg, ptr::null_mut(), 0, 0) != 0 {
-            if pretranslate_filter(&mut msg) && IsDialogMessageW(GetAncestor(msg.hwnd, GA_ROOT), &mut msg) == 0 {
+            if pretranslate_filter(&msg) && IsDialogMessageW(GetAncestor(msg.hwnd, GA_ROOT), &mut msg) == 0 {
                 TranslateMessage(&msg); 
                 DispatchMessageW(&msg); 
             }
